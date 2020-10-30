@@ -1,5 +1,5 @@
 eggs,dozen,19,1.990000
-bacon,lb,0,7.850000
+bacon,lb,21,7.850000
 bread,loaf,12,1.580000
 coffee,lb,10,5.990000
 juice,gallon,5,4.990000
