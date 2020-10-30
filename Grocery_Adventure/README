@@ -1,0 +1,9 @@
+This is a project from my college ENG 101 course at UAH. 
+
+The goal of the project was to create a grocery store interface that read information from a text file (grocery_catalog in the folder Text_files) to populate the shelves,
+had a shopping cart for customers to place items in, and could ring up customers according to what they put in their carts. Additionally, it would keep track of inventory
+and would write to another output file when an item ran out.
+
+I went for some extra credit by making the project more interesting. "More interesting" to me equated to an awful lot of flavor text, much of it being randomized from a list
+of choices. I also added a randomized aisle system that refreshes once all item options have been viewed. Users can request an item that is not in their aisle if they know
+the name of the item.
