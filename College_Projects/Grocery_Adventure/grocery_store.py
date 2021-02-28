@@ -10,7 +10,41 @@ count for bonus points.
 """
 
 import random #used for variations in text and to choose what items go in which aisle
-import grocery_fun as gf #mandatory for my other functions
+#import grocery_fun as gf #mandatory for my other functions
+
+#first mandatory function
+def grocery_cost(groc_list, prices, number, stock):
+    total = 0 #initialize the total
+    for item in groc_list: #for every item in the list
+        price = prices[item] #get the price
+        amnt_wanted = number[groc_list.index(item)]
+        # because of the way I implemented the "cart" feature, the total stock includes the cart
+        available = stock[item] + amnt_wanted
+
+        if available >= amnt_wanted: #if the amount wanted isn't greater than what is available
+            total += price * amnt_wanted #update the total cost
+        else: #else tell the user how many are left of what item
+            print("There are only %i left of %s. Adding those to transaction"%(available, item))
+            total += price*available #and only charge for how much was taken
+            stock[item] = 0 #set the stock to be zero.
+    return total #Return the total cost
+
+#second mandatory function
+def stock_check(stock, units, prices):
+    file = open(dir + "stock_update.txt", "w+") #open the file
+    for item, amount in stock.items(): #for every item
+        if amount < 5: #if the stock amount is less than 5
+            #Write to the stock update file
+            file.write("%s needs to be restocked. There are %i left.\n"%(item, amount))
+    file.close()
+
+    #open the catalog
+    file = open(dir + "grocery_catalog.txt", "w")
+    for item, amount in stock.items(): #for every item
+        #rewrite the catalog as it was found
+        #item, units, amount, price
+        line = "%s,%s,%i,%f"%(item,units[i],amount,prices[i]) + "\n" #add a newline character
+        file.write(line) #write the line
 
 #item:stock
 stock = {}
@@ -142,8 +176,8 @@ while True: #only broken once the shopper chooses 3 and checks out
             #State the amount, unit type(jar, lb, etc) and item name.
             print("You have %s %ss of %s"%(unit_list[i], sizes[groc_list[i]], groc_list[i]))
     elif response == "3": # 3 to checkout
-        ringup = gf.grocery_cost(groc_list, prices, unit_list, stock) #call the cost function
+        ringup = grocery_cost(groc_list, prices, unit_list, stock) #call the cost function
         print("Checked out! Thank you for your purchase of $%.2f!"%ringup) #Tell the user how much he/she spent
         break #break the main loop. The user has left the store
 #call the stock function to update the catalog and create the stock update file
-gf.stock_check(stock, sizes, prices)
+stock_check(stock, sizes, prices)

@@ -9,38 +9,58 @@ class Maze:
             colour == "black"
         self.canvas.create_line(x1, y1, x2, y2, fill=colour, width=3)
         
-    def update_nodes(self):
+    def update_nodes(self, final):
         extra = 0
-        self.canvas.delete("all")
+        count = 0
+        #self.canvas.delete("all")
         #print("update")
         for r in range(0, self.sizey):
             for c in range(0, self.sizex):
                 node = self.findnodebycr(c, r)
                 #print("Node == " + str(node))
-                midx = 3 + self.squaresize/2
-                midy = 3 + self.squaresize/2
-                posx = midx + c*(self.squaresize+extra)
-                posy = midy + r*(self.squaresize+extra)
 
-                if node[7]: #Is part of the path
-                    self.canvas.create_rectangle(posx-self.squaresize/2, posy-self.squaresize/2, posx+self.squaresize/2, posy+self.squaresize/2, outline="#fb0", fill="#fb0")
+                if node[12]:
+                    count += 1
+                    midx = 3 + self.squaresize/2
+                    midy = 3 + self.squaresize/2
+                    posx = midx + c*(self.squaresize+extra)
+                    posy = midy + r*(self.squaresize+extra)
+                    
+                    for i,v in enumerate(node[11]):
+                        self.canvas.delete(v)
 
-                if node[2] == True: #left
-                    self.line(posx-self.squaresize/2, posy-self.squaresize/2, posx-self.squaresize/2, posy+self.squaresize/2, node[6])
-                if node[3] == True: #right
-                    self.line(posx+self.squaresize/2, posy-self.squaresize/2, posx+self.squaresize/2, posy+self.squaresize/2, node[6])
-                if node[4] == True: #up
-                    self.line(posx-self.squaresize/2, posy-self.squaresize/2, posx+self.squaresize/2, posy-self.squaresize/2, node[6])
-                if node[5] == True: #down
-                    self.line(posx-self.squaresize/2, posy+self.squaresize/2, posx+self.squaresize/2, posy+self.squaresize/2, node[6])
-                if node[2] == False or node[3] == False or node[4] == False or node[5] == False:
-                    self.line(posx, posy, posx+2, posy+2, node[6])
-                    #print(node)
-                #if node[2] == True and node[3] == True and node[4] == True and node[5] == True:
-                    #print(str(node) + " is fully closed off...")
-                #if (r*self.sizey + c)%2 == 0:
-                    #self.line(posx, posy, posx+2, posy+2)
+                    node[11] = []
+
+                    if node[7]: #Is part of the path
+                        if final:
+                            rect = self.canvas.create_rectangle(posx-self.squaresize/2, posy-self.squaresize/2, posx+self.squaresize/2, posy+self.squaresize/2, outline="#5500ff", fill="#5500ff")
+                            self.canvas.tag_raise(rect)
+                            node[11].append(rect)
+                        else:
+                            rect = self.canvas.create_rectangle(posx-self.squaresize/2, posy-self.squaresize/2, posx+self.squaresize/2, posy+self.squaresize/2, outline="#"+self.colorcode, fill="#"+self.colorcode)
+                            self.canvas.tag_raise(rect)
+                            node[11].append(rect)
+                            
+                    if node[2] == True: #left
+                        node[11].append(self.line(posx-self.squaresize/2, posy-self.squaresize/2, posx-self.squaresize/2, posy+self.squaresize/2, node[6]))
+                    if node[3] == True: #right
+                        node[11].append(self.line(posx+self.squaresize/2, posy-self.squaresize/2, posx+self.squaresize/2, posy+self.squaresize/2, node[6]))
+                    if node[4] == True: #up
+                        node[11].append(self.line(posx-self.squaresize/2, posy-self.squaresize/2, posx+self.squaresize/2, posy-self.squaresize/2, node[6]))
+                    if node[5] == True: #down
+                        node[11].append(self.line(posx-self.squaresize/2, posy+self.squaresize/2, posx+self.squaresize/2, posy+self.squaresize/2, node[6]))
+                    if node[2] == False or node[3] == False or node[4] == False or node[5] == False:
+                        self.line(posx, posy, posx+2, posy+2, node[6])
+                        #print(node)
+
+                    node[12] = False
+                        
+                    #if node[2] == True and node[3] == True and node[4] == True and node[5] == True:
+                        #print(str(node) + " is fully closed off...")
+                    #if (r*self.sizey + c)%2 == 0:
+                        #self.line(posx, posy, posx+2, posy+2)
         self.canvas.update()#_idletasks()
+        #print(str(count) + " nodes updated.")
     
 
     def distbet(self, node1, node2):
@@ -221,7 +241,7 @@ class Maze:
                 
                 if newnode == None:
                     print("No more nodes.")
-                    self.update_nodes()
+                    self.update_nodes(False)
                     break                        
 
     def create_path(self, currentnode):
@@ -312,180 +332,229 @@ class Maze:
             
             if newnode == None:
                 print("No more nodes.")
-                self.update_nodes()
+                self.update_nodes(False)
                 return False
-        self.update_nodes()
+        self.update_nodes(False)
         self.create_path(currentnode)
 
-    def finalpath(self, start, end, list1):
-        openlist = list1
-        self.beento[:] = []
-        start = self.findnodebycr(start[1], start[0])
+    def clean_nodes(self):
+        count = 0
+        for c in range(0, self.sizex):
+            #print("r == " + str(r))
+            for r in range(0, self.sizey):
+                #self.nodes[count] = [c, r, True, True, True, True, None, False, 9999, 9999, None]
+                self.nodes[count][6] = None
+                self.nodes[count][7] = None
+                self.nodes[count][12] = True
+                count += 1
+
+    def finalpath(self, start, end):
+
+        self.clean_nodes()
+        
+        start[6] = "#4e03fc"
+        start[7] = True
+        start[8] = 0
+        start[9] = self.dist_btw(start, end)
+        start[12] = True
+
         currentnode = start
 
-        end = self.findnodebyrc(end[1], end[0])
-        endnode = end
-        
-        nextnode = None
         while True:
-            if currentnode == endnode:
-                print("Finished!!!")
-                self.beento.append(currentnode)
-                #print(str(self.beento))
-                for i in self.beento:
-                    i[6] = "Blue"
-                self.update_nodes()
+            #print("loop")
+            self.mark_as_path(currentnode, "backward")
+            if currentnode == end:
+                print("Finished!!!")                
+                self.update_nodes(False)#self.update_nodes(True)
+                #input("Input to finish pathfinding")
                 break
-            #print("currentnode == " + str(currentnode))
-            currentc = int(self.getcolumn(currentnode))
-            currentr = int(self.getrow(currentnode))
+            
+            currentnode = currentnode[10]
+            time.sleep(.05)
+            self.update_nodes(False)#self.update_nodes(True)
 
-            left = self.findnodebycr(currentc-1, currentr)
-            right = self.findnodebycr(currentc+1, currentr)
-            up = self.findnodebycr(currentc, currentr-1)
-            down = self.findnodebycr(currentc, currentr+1)
-            adjacent1 = []
+    def clean_node(self, node):
+        node[6] = None
+        node[7] = None
+        node[12] = True
 
-            if left and left[3] == False and left in openlist: #and self.distbet(left, end) <= self.distbet(left, start):
-                adjacent1.append(left)
-                #print("appended ")
-            if right and right[2] == False and right in openlist: #and self.distbet(right, end) <= self.distbet(left, start):
-                adjacent1.append(right)
-                #print("appended ")
-            if up and up[5] == False and up in openlist: #and self.distbet(up, end) <= self.distbet(up, start):
-                adjacent1.append(up)
-                #print("appended ")
-            if down and down[4] == False and down in openlist: #and self.distbet(down, end) <= self.distbet(down, start):
-                adjacent1.append(down)
-                #print("appended ")
+    def clean_beento_nodes(self):
+        for i,v in enumerate(self.beento):
+            v[6] = None
+            v[7] = None
+            v[12] = True
 
-##            print("left == " + str(left))
-##            print("right == " + str(right))
-##            print("up == " + str(up))
-##            print("down == " + str(down))
+    def mark_as_path(self, cell, setting):
+        if setting == "forward":        
+            cell[6] = "#3deb34"
+            cell[7] = True
+            cell[12] = True
+        elif setting == "backward":
+            cell[6] = "#4e03fc"
+            cell[7] = True
+            cell[12] = True
 
-            if len(adjacent1) != 0:
-                closest = 9999
-                farthest = 0
-                nextnode = None
-                #print(len(adjacent1))
-                for i,v in enumerate(adjacent1):
-                    print(v)
-                    #print(self.distbet(v, end))
-                    if self.distbet(v, end) < closest:
-                        #print("less than closest")
-                        closest = self.distbet(v, end)
-                        nextnode = v
+    def list_difference(self, li1, li2):
+        li_dif = [i for i in li1 + li2 if i not in li1 or i not in li2]
+        return li_dif
+            
+    def dist_btw(self, cell1, cell2):
+        return ((cell2[0]-cell1[0])**2 + (cell2[1]-cell1[1])**2)
 
-                self.beento.append(currentnode)
-                #print("Nextnode == " + str(nextnode))
-                currentnode = nextnode
-                self.update_nodes()
-            else:
-                print("Backtracking")
+    def set_from_parent(self, cell):
+        #self.clean_beento_nodes()
+        show_list = []
+        current = cell
+        count = 0
+        while current:
+            count += 1
+            #self.mark_as_path(current, "forward")
+            show_list.append(current)
+            current = current[10]
 
-                newnode = None
-                for i in range(len(self.beento)-1, 0, -1):
-                    if self.check_adjacent_path(self.beento[i]):
-                        self.beento.append(currentnode)
-                        currentnode = self.beento[i]
-                        newnode = self.beento[i]
-                        print("Backtracked to " + str(currentnode))
-                        break
-                
-                if newnode == None:
-                    print("No more nodes? Pathfinding shouldn't end here.")
-                    self.update_nodes()
-                    break
+        print(str(count) + " Nodes in the tree.")
+
+        diff = self.list_difference(self.last_show, show_list)
+        print(str(len(diff)) + " differences")
+        for i,v in enumerate(diff):
+            if v != cell:
+                if v not in show_list:
+                    self.clean_node(v)
+                else:
+                    self.mark_as_path(v, "forward")
+        
+        return show_list, len(diff)
 
     def pathfind(self, start, end):
         self.beento[:] = []
-        start = self.findnodebycr(start[0], start[1])
-        currentnode = start
-
-        end = self.findnodebycr(end[0], end[1])
+        self.openlist = []
+        self.closedlist = []
+        self.last_show = []
+        currentnode = None#start
         endnode = end
 
-        self.beento.append(start)
+        start[8] = 0
+        start[9] = self.dist_btw(start, end)
+        
+        
+        #self.beento.append(start)
+        self.openlist.append(start)
+        #self.closedlist.append(start)
         
         nextnode = None
         while True:
-            currentnode[6] = "#3deb34"
+
             if currentnode == endnode:
                 print("Finished!!!")
                 self.beento.append(currentnode)
                 #print(str(self.beento))
-                self.update_nodes()
+                self.update_nodes(False)
+                self.finalpath(end, start)
                 break
-            print("currentnode == " + str(currentnode))
-            currentc = currentnode[0]
-            currentr = currentnode[1]
+            #print("currentnode == " + str(currentnode))
 
-            left = self.findnodebycr(currentc-1, currentr)
-            right = self.findnodebycr(currentc+1, currentr)
-            up = self.findnodebycr(currentc, currentr+1)
-            down = self.findnodebycr(currentc, currentr-1)
-##            print("left == " + str(left))
-##            print("right == " + str(right))
-##            print("up == " + str(up))
-##            print("down == " + str(down))
             adjacent1 = []
 
-            if left and left[3] == False and left not in self.beento: #and self.distbet(left, end) <= self.distbet(left, start):
-                adjacent1.append(left)
-                #print("appended ")
-            if right and right[2] == False and right not in self.beento: #and self.distbet(right, end) <= self.distbet(left, start):
-                adjacent1.append(right)
-                #print("appended ")
-            if up and up[4] == False and up not in self.beento: #and self.distbet(up, end) <= self.distbet(up, start):
-                adjacent1.append(up)
-                #print("appended ")
-            if down and down[5] == False and down not in self.beento: #and self.distbet(down, end) <= self.distbet(down, start):
-                adjacent1.append(down)
-                #print("appended ")
-            #print(adjacent1)
+            if currentnode:
+                currentc = currentnode[0]
+                currentr = currentnode[1]
+
+                left = self.findnodebycr(currentc-1, currentr)
+                right = self.findnodebycr(currentc+1, currentr)
+                up = self.findnodebycr(currentc, currentr+1)
+                down = self.findnodebycr(currentc, currentr-1)
+    ##            print("left == " + str(left))
+    ##            print("right == " + str(right))
+    ##            print("up == " + str(up))
+    ##            print("down == " + str(down))
+                
+
+                #8 is g
+                #9 is h
+                #10 is parent
+
+                if left and left[3] == False and not (left in self.openlist) and not (left in self.closedlist): #and self.distbet(left, end) <= self.distbet(left, start):
+                    adjacent1.append(left)
+                    #print("appended ")
+                elif left in self.openlist and left[3] == False:
+                    if currentnode[8] + 1 < left[8]:
+                        left[8] = currentnode[8] + 1
+                        left[10] = currentnode
+                        print("Reestablished parent")
+                if right and right[2] == False and not (right in self.openlist) and not (right in self.closedlist): #and self.distbet(right, end) <= self.distbet(left, start):
+                    adjacent1.append(right)
+                    #print("appended ")
+                elif right in self.openlist and right[2] == False:
+                    if currentnode[8] + 1 < right[8]:
+                        right[8] = currentnode[8] + 1
+                        right[10] = currentnode
+                        print("Reestablished parent")
+                if up and up[4] == False and not (up in self.openlist) and not (up in self.closedlist): #and self.distbet(up, end) <= self.distbet(up, start):
+                    adjacent1.append(up)
+                    #print("appended ")
+                elif up in self.openlist and up[4] == False:
+                    if currentnode[8] + 1 < up[8]:
+                        up[8] = currentnode[8] + 1
+                        up[10] = currentnode
+                        print("Reestablished parent")
+                if down and down[5] == False and not (down in self.openlist) and not (down in self.closedlist): #and self.distbet(down, end) <= self.distbet(down, start):
+                    adjacent1.append(down)
+                    #print("appended ")
+                elif down in self.openlist and down[5] == False:
+                    if currentnode[8] + 1 < down[8]:
+                        down[8] = currentnode[8] + 1
+                        down[10] = currentnode
+                        print("Reestablished parent")
+                #print(adjacent1)
 
 
             if len(adjacent1) != 0:
-                closest = 9999
-                farthest = 0
-                nextnode = None
+
+
                 #print(len(adjacent1))
                 for i,v in enumerate(adjacent1):
-                    #print(v)
-                    #print(self.distbet(v, end))
-                    if self.distbet(v, end) < closest:
-                        #print("less than closest")
-                        closest = self.distbet(v, end)
-                        nextnode = v
+                    v[8] = currentnode[8] + 1
+                    v[9] = self.dist_btw(v, end)
+                    v[10] = currentnode
+                    #print("Adding " + str(v) + " to openlist")
+                    self.openlist.append(v)
 
-                currentnode[6] = "#3deb34"
-                currentnode[7] = True
-                self.beento.append(currentnode)
-                #print("Nextnode == " + str(nextnode))
-                currentnode = nextnode
-                self.update_nodes()
-            else:
-                print("Backtracking")
-
-                newnode = None
-                for i in range(len(self.beento)-1, 0, -1):
-                    if self.check_adjacent_path(self.beento[i]):
-                        self.beento.append(currentnode)
-                        currentnode = self.beento[i]
-                        newnode = self.beento[i]
-                        print("Backtracked to " + str(currentnode))
-                        selection = self.beento[i:len(self.beento)-1]
-                        print(selection)
-                        for node in selection:
-                            node[6] = 'black'
-                            node[7] = False
-                        break
+            nextmove = False
+            if len(self.openlist) != 0:
+                #print("Length of openlist is " + str(len(self.openlist)))
+                lowestF = 99999
                 
-                if newnode == None:
-                    print("No more nodes? Pathfinding shouldn't end here.")
-                    self.update_nodes()
-                    break
+                for i,v in enumerate(self.openlist):
+                    f = v[8] + v[9]
+                    if f < lowestF:
+                        lowestF = f
+                        nextmove = v
+
+                        
+                #print("Next move is " + str(nextmove))
+                self.closedlist.append(nextmove)
+                self.openlist.remove(nextmove)
+                #print(nextmove in self.openlist)
+                
+                self.mark_as_path(nextmove, "forward")
+                currentnode = nextmove
+
+                #self.last_show, updates = self.set_from_parent(nextmove)
+                #print(currentnode[0], currentnode[1])
+                time.sleep(.05)
+                
+                
+                #time1 = timeit.timeit()
+                self.update_nodes(False)
+                #print(timeit.timeit() - time1)
+                self.beento.append(currentnode)
+                #time.sleep(0.005*updates**2)
+                #print("Nextnode == " + str(nextnode))
+                #currentnode = nextnode
+                #self.update_nodes()
+            else:
+                print("No more tiles in openlist")
+                break
 
                 
     def p(self, x):
@@ -499,8 +568,8 @@ class Maze:
         self.beento = []
 
         #Maze options. Currently has to be square for unknown reasons
-        self.cwidth = 1285
-        self.cheight = 725
+        self.cwidth = 1005
+        self.cheight = 1005
         self.sizex = sizex
         self.sizey = sizey
         self.sizetotal = self.sizex*self.sizey
@@ -533,18 +602,18 @@ class Maze:
             #print("r == " + str(r))
             for r in range(0, sizey):
                 #print(r*sizey+c)
-                self.nodes[count] = [c, r, True, True, True, True, None, False]
+                #column, row, wall, wall, wall, wall, color, fill_rect, g, h, parent, parts, update
+                self.nodes[count] = [c, r, True, True, True, True, None, False, 9999, 9999, None, [None, None, None, None, None], True]
                 count += 1
                 #print("created node " + str(count) + " at position " + str(c), str(r))
                 #print("c == " + str(c))
         #print("nodes == " + str(self.nodes))
         #for i in self.nodes:
             #self.findnodebycr(self.nodes[i][0], self.nodes[i][1])
-        print(mazestart)
         start = self.findnodebycr(mazestart[0], mazestart[1])
 
         self.root = Tk()
-        self.canvas = Canvas(width=self.cwidth, height=self.cheight, bg="#34ebe1")
+        self.canvas = Canvas(width=self.cwidth, height=self.cheight, bg="#A9A9A9")
         self.canvas.pack()
 
         if sizex*sizey > 25**2 or rtd == False:
@@ -554,8 +623,9 @@ class Maze:
             self.create_path(start)
             t2 = timeit.default_timer()
         list1.append(str(sizex) + "x" + str(sizey) + ":" + str(t2-t1))
-        input("Input to start Pathfinding: ")
-        self.pathfind(pathstart, pathend)
+        input("Input to begin pathfinding: ")
+        self.colorcode = "ff6600"#input("Input html color code: ")
+        self.pathfind(self.findnodebycr(pathstart[0], pathstart[1]), self.findnodebycr(pathend[0], pathend[1]))
 
 
 #sys.setrecursionlimit(1500)
@@ -563,11 +633,11 @@ class Maze:
 #broken mazes: 319
 num = 5#random.randint(0, 1000)
 #print("seed == " + str(num))
-#random.seed(10112)
-random.seed(num)
+random.seed(101)
+#random.seed(num)
 list1 = []
-sx = 64 #size x
-sy = 36 # size y
+sx = 40 #size x
+sy = 40 # size y
 #(sizex, sizey, mazestart, pathfindstart, pathfindend, watch it generate)
 Maze(sx, sy, (sx//2, sy//2), (0, 0), (sx-1, sy-1), False, list1)
 print(list1)

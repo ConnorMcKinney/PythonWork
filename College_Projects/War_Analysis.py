@@ -140,7 +140,7 @@ for game in master_list:
     mean_list += length
 
 mean = mean_list/games_to_run
-
+print("\n-----War Analysis-----")
 print("Over " + str(games_to_run) + " games, the average number of turns was " + str(mean))
 print("The max number of turns was " + str(maximum) + " and the minimum number of turns was " + str(minimum))
 
